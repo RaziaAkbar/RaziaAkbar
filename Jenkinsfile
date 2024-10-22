@@ -1,67 +1,54 @@
 pipeline {
-    agent any 
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Building...'
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Testing...'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying...'
-            }
-        }
-    }
-}
-pipeline {
     agent any
 
     stages {
         stage('Checkout') {
             steps {
+                // Checkout your source code from version control
                 checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn clean package' // Adjust based on your build command
+                // Build your project (compile, package, etc.)
+                sh 'mvn clean package' // Replace with your build command
             }
         }
 
         stage('Unit Tests') {
             steps {
-                sh 'mvn test' // Adjust based on your test command
+                // Run unit tests
+                sh 'mvn test' // Replace with your unit test command
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarCloud') {
-                    sh 'mvn sonar:sonar' // Adjust based on your analysis command
+                // Execute SonarQube analysis using the SonarQube Scanner
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh 'mvn sonar:sonar' // Replace with your SonarQube analysis command
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                // Add deployment commands here if applicable
+                // Deploy your application (if applicable)
+                // sh '...'
             }
         }
     }
 
     post {
         success {
+            // This block executes if the pipeline succeeds
             echo 'Pipeline succeeded!'
         }
+
         failure {
+            // This block executes if the pipeline fails
             echo 'Pipeline failed!'
         }
     }
 }
-
