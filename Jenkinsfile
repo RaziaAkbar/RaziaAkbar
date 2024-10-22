@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('dev') {
             steps {
                 // Checkout your source code from version control
                 checkout scm
@@ -26,7 +26,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 // Execute SonarQube analysis using the SonarQube Scanner
-                withSonarQubeEnv('SonarQubeServer') {
+                withSonarQubeEnv('SonarQube') {
                     sh 'mvn sonar:sonar' // Replace with your SonarQube analysis command
                 }
             }
