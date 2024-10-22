@@ -74,7 +74,7 @@ pipeline {
         }
 
         always {
-            node {
+            node('maven-build') { // Added label for the Maven Build node
                 cleanWs() // Clean up workspace after build
             }
         }
