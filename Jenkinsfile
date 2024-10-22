@@ -1,54 +1,80 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'ENV', defaultValue: 'dev', description: 'Environment to deploy to')
+    }
+
+    environment {
+        MVN_HOME = tool name: 'Maven 3', type: 'hudson.tasks.Maven$MavenInstallation' // Assumes Maven is configured in Jenkins
+    }
+
     stages {
-        stage('dev') {
+        stage('Checkout') {
             steps {
-                // Checkout your source code from version control
-                checkout scm
+                echo "Checking out code..."
+                checkout scm // Checkout source code from version control
             }
         }
 
         stage('Build') {
             steps {
-                // Build your project (compile, package, etc.)
-                sh 'mvn clean package' // Replace with your build command
+                echo "Building project..."
+                sh "'${MVN_HOME}/bin/mvn' clean package" // Adjust Maven build command if needed
             }
         }
 
         stage('Unit Tests') {
             steps {
-                // Run unit tests
-                sh 'mvn test' // Replace with your unit test command
+                echo "Running unit tests..."
+                sh "'${MVN_HOME}/bin/mvn' test" // Execute unit tests
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                // Execute SonarQube analysis using the SonarQube Scanner
-                withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar' // Replace with your SonarQube analysis command
+                echo "Running SonarQube analysis..."
+                withSonarQubeEnv('SonarQube') { // Ensure SonarQube is configured in Jenkins
+                    sh "'${MVN_HOME}/bin/mvn' sonar:sonar" // SonarQube analysis
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 1, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true // Wait for SonarQube quality gate result
+                    }
                 }
             }
         }
 
         stage('Deploy') {
+            when {
+                expression {
+                    return params.ENV == 'prod' || params.ENV == 'dev' // Deploy only for 'dev' or 'prod' environments
+                }
+            }
             steps {
-                // Deploy your application (if applicable)
-                // sh '...'
+                echo "Deploying application to ${params.ENV} environment..."
+                // Add your deployment commands here
+                // sh 'deployment-script.sh' // Example placeholder for deployment command
             }
         }
     }
 
     post {
         success {
-            // This block executes if the pipeline succeeds
             echo 'Pipeline succeeded!'
         }
 
         failure {
-            // This block executes if the pipeline fails
             echo 'Pipeline failed!'
+        }
+
+        always {
+            cleanWs() // Clean up workspace after build
         }
     }
 }
