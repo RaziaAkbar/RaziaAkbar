@@ -74,7 +74,9 @@ pipeline {
         }
 
         always {
-            cleanWs() // Clean up workspace after build
+            node {
+                cleanWs() // Clean up workspace after build
+            }
         }
     }
 }
